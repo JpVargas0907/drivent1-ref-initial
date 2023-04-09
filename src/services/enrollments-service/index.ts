@@ -4,9 +4,22 @@ import { invalidDataError, notFoundError } from '@/errors';
 import addressRepository, { CreateAddressParams } from '@/repositories/address-repository';
 import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enrollment-repository';
 import { exclude } from '@/utils/prisma-utils';
+import { invalidCepError } from '@/errors/invalid-cep-error';
+
+function cepIsValid(cep: string): boolean {
+  const cepRegex = /^[0-9]{8}$/; 
+  return cepRegex.test(cep);
+}
+
 
 async function getAddressFromCEP(cep: string) {
-  const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
+  let result;
+  if (cepIsValid(cep)){
+    result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
+  } else {
+    throw invalidCepError();
+  }
+  
   const adressInfo = {
     logradouro: result.data.logradouro,
     complemento: result.data.complemento,
@@ -17,7 +30,7 @@ async function getAddressFromCEP(cep: string) {
   
   if (!result.data) {
     throw notFoundError();
-  } else if (result.data.erro === true){
+  }  else if (result.data.erro === true){
     return result.data;
   }
 
