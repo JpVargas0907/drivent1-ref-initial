@@ -22,7 +22,7 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
       userId: req.userId,
     });
 
-    return res.sendStatus(httpStatus.OK);
+    return res.status(httpStatus.OK).send();
   } catch (error) {
     return res.sendStatus(httpStatus.BAD_REQUEST);
   }
@@ -34,7 +34,7 @@ export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response
     const address = await enrollmentsService.getAddressFromCEP(cep);
     res.status(httpStatus.OK).send(address);
   } catch (error) {
-    if (error.name === 'NotFoundError' || error.name === 'InvalidCepError') {
+    if (error.name === 'NotFoundError' || error.name === 'InvalidDataError') {
       return res.sendStatus(httpStatus.NO_CONTENT);
     }
   }

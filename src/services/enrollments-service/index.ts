@@ -6,32 +6,31 @@ import enrollmentRepository, { CreateEnrollmentParams } from '@/repositories/enr
 import { exclude } from '@/utils/prisma-utils';
 import { invalidCepError } from '@/errors/invalid-cep-error';
 
-function cepIsValid(cep: string): boolean {
-  const cepRegex = /^[0-9]{8}$/; 
-  return cepRegex.test(cep);
+type address = {
+  logradouro: string,
+  complemento: string,
+  bairro: string,
+  cidade: string,
+  uf: string
 }
 
-
 async function getAddressFromCEP(cep: string) {
-  let result;
-  if (cepIsValid(cep)){
-    result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
-  } else {
-    throw invalidCepError();
-  }
+  const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
   
-  const adressInfo = {
+  if (!result.data) {
+    throw notFoundError();
+  } else if (result.status === 400) {
+    throw invalidDataError([result.statusText]);
+  } else if (result.data.erro) {
+    throw invalidDataError([result.statusText]);
+  }
+
+  const adressInfo: address = {
     logradouro: result.data.logradouro,
     complemento: result.data.complemento,
     bairro: result.data.bairro,
     cidade: result.data.localidade,
     uf: result.data.uf
-  }
-  
-  if (!result.data) {
-    throw notFoundError();
-  }  else if (result.data.erro === true){
-    return result.data;
   }
 
   return adressInfo;
