@@ -58,6 +58,16 @@ async function ticketProcessPayment(ticketId: number) {
   });
 }
 
+async function findValidTicketForBooking(userId: number) {
+  return await prisma.ticket.findFirst({
+    where: {
+      Enrollment: { userId },
+      TicketType: { isRemote: false, includesHotel: true },
+      status: 'PAID',
+    },
+  });
+}
+
 export default {
   findTicketTypes,
   findTicketByEnrollmentId,
@@ -65,4 +75,5 @@ export default {
   findTickeyById,
   findTickeWithTypeById,
   ticketProcessPayment,
+  findValidTicketForBooking,
 };
