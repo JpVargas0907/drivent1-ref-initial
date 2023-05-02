@@ -20,7 +20,7 @@ export async function createBookingController(req: AuthenticatedRequest, res: Re
     const { roomId } = req.body;
     const userId = req.userId; // assume que você já tem o usuário autenticado na requisição
     const bookingId = await bookingService.createBookingService(userId, roomId);
-    res.sendStatus(httpStatus.OK).json({ bookingId });
+    res.status(httpStatus.OK).json({ bookingId });
   } catch (error) {
     if (error.message === 'No capacity for this room!') {
       res.sendStatus(httpStatus.FORBIDDEN);
@@ -35,7 +35,7 @@ export async function updateBookingController(req: AuthenticatedRequest, res: Re
   const { roomId } = req.body;
 
   try {
-    const updatedBooking = await bookingService.createBookingService(parseInt(bookingId), parseInt(roomId));
+    const updatedBooking = await bookingService.createBookingService(parseInt(bookingId), roomId);
     return res.status(200).json(updatedBooking);
   } catch (error) {
     if (error.message === 'No capacity for this room!') {

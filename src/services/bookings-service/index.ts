@@ -6,15 +6,11 @@ import ticketsRepository from '@/repositories/tickets-repository';
 
 async function getBookingService(userId: number) {
   const result = await bookingsRepository.getBookingRepository(userId);
-  const resultObject = {
-    id: result.id,
-    Room: result.Room,
-  };
 
   if (result === null) {
     throw notFoundError();
   } else {
-    return resultObject;
+    return result;
   }
 }
 
@@ -29,18 +25,14 @@ async function createBookingService(userId: number, roomId: number): Promise<any
     throw noCapacityError();
   }
 
-  const ticket = await ticketsRepository.findValidTicketForBooking(userId);
-
-  if (!ticket) {
-    throw noCapacityError();
-  }
   // Cria a reserva
   const bookingId = await bookingsRepository.createBookingRepository(userId, roomId);
   return bookingId;
 }
 
 async function updateBookingService(bookingId: number, roomId: number, userId: number) {
-  const booking = await bookingsRepository.getBookingRepository(bookingId);
+  const booking = await bookingsRepository.updateBookingRepository(bookingId, roomId);
+
   if (!booking) {
     throw notFoundError();
   }
@@ -49,6 +41,7 @@ async function updateBookingService(bookingId: number, roomId: number, userId: n
   if (!room) {
     throw notFoundError();
   }
+
   if (room.capacity === 0) {
     throw noCapacityError();
   }
