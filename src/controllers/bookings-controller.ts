@@ -21,9 +21,12 @@ export async function createBookingController(req: AuthenticatedRequest, res: Re
     const userId = req.userId; // assume que você já tem o usuário autenticado na requisição
     const bookingId = await bookingService.createBookingService(userId, roomId);
     res.sendStatus(httpStatus.OK).json({ bookingId });
-  } catch (err) {
-    console.error(err);
-    res.status(err.status || 500).json({ message: err.message });
+  } catch (error) {
+    if (error.message === 'No capacity for this room!') {
+      res.sendStatus(httpStatus.FORBIDDEN);
+    } else if (error.message === 'No result for this search!') {
+      res.sendStatus(httpStatus.NOT_FOUND);
+    }
   }
 }
 
@@ -35,6 +38,10 @@ export async function updateBookingController(req: AuthenticatedRequest, res: Re
     const updatedBooking = await bookingService.createBookingService(parseInt(bookingId), parseInt(roomId));
     return res.status(200).json(updatedBooking);
   } catch (error) {
-    res.send(error.message);
+    if (error.message === 'No capacity for this room!') {
+      res.sendStatus(httpStatus.FORBIDDEN);
+    } else if (error.message === 'No result for this search!') {
+      res.sendStatus(httpStatus.NOT_FOUND);
+    }
   }
 }
