@@ -25,9 +25,15 @@ async function createBookingService(userId: number, roomId: number): Promise<any
     throw noCapacityError();
   }
 
+  const ticket = await ticketsRepository.findValidTicketForBooking(userId);
+
+  if (!ticket) {
+    throw noCapacityError();
+  }
+
   // Cria a reserva
   const bookingId = await bookingsRepository.createBookingRepository(userId, roomId);
-  return bookingId;
+  return bookingId.id;
 }
 
 async function updateBookingService(bookingId: number, roomId: number, userId: number) {
