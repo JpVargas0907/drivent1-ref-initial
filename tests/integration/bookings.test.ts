@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import faker from '@faker-js/faker';
 import * as jwt from 'jsonwebtoken';
 import supertest from 'supertest';
+import { TicketStatus } from '@prisma/client';
 import { cleanDb, generateValidToken } from '../helpers';
 import {
   createUser,
@@ -9,6 +10,9 @@ import {
   createHotel,
   createRoomWithHotelId,
   createRoomWithHotelIdWithoutCapacity,
+  createEnrollmentWithAddress,
+  createTicketTypeWithHotel,
+  createTicket,
 } from '../factories';
 import app, { init } from '@/app';
 
@@ -71,6 +75,9 @@ describe('POST /booking', () => {
   it('should respond with status 200 and bookingId if roomId exists and has availability and user has a booking', async () => {
     const user = await createUser();
     const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketTypeWithHotel();
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
     const hotel = await createHotel();
     const room = await createRoomWithHotelId(hotel.id);
 
@@ -169,5 +176,25 @@ describe('PUT /booking/:bookingId', () => {
       .send({ roomId: room.id });
 
     expect(response.status).toBe(httpStatus.FORBIDDEN);
+  });
+
+  it('should respond with status 200 and bookingId if roomId is updated', async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketTypeWithHotel();
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+    const hotel = await createHotel();
+    const room = await createRoomWithHotelId(hotel.id);
+    const newRoom = await createRoomWithHotelId(hotel.id);
+    const booking = await createBooking(user.id, room.id);
+
+    const response = await server
+      .put(`/booking/${booking.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ roomId: newRoom.id });
+
+    expect(response.status).toBe(httpStatus.OK);
+    expect(response.body).toHaveProperty('bookingId');
   });
 });

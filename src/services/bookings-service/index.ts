@@ -37,7 +37,7 @@ async function createBookingService(userId: number, roomId: number): Promise<any
 }
 
 async function updateBookingService(bookingId: number, roomId: number, userId: number) {
-  const booking = await bookingsRepository.updateBookingRepository(bookingId, roomId);
+  const booking = await bookingsRepository.getBookingRepository(userId);
 
   if (!booking) {
     throw notFoundError();
@@ -52,14 +52,8 @@ async function updateBookingService(bookingId: number, roomId: number, userId: n
     throw noCapacityError();
   }
 
-  const ticket = await ticketsRepository.findValidTicketForBooking(userId);
-
-  if (!ticket) {
-    throw noCapacityError();
-  }
-
-  const updatedBooking = await bookingsRepository.updateBookingRepository(bookingId, roomId);
-  return updatedBooking;
+  const updatedBooking = await bookingsRepository.updateBookingRepository(bookingId, roomId, userId);
+  return updatedBooking.id;
 }
 
 const bookingsService = {
